@@ -1,697 +1,800 @@
-<!-- ... existing code ... -->
-  <!-- Navigation Bar -->
-  <header class="border-b border-quant-border/80 bg-quant-900/90 backdrop-blur-md sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      
-      <!-- Brand & Status -->
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>XSMB QuantPro — Hệ Thống Thống Kê & Dự Đoán Xác Suất Xổ Số Miền Bắc</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              500: '#f43f5e',
+              600: '#e11d48',
+              700: '#be123c',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+    }
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.82);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .gold-glow {
+      box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.35);
+    }
+    .crimson-glow {
+      box-shadow: 0 0 25px -5px rgba(225, 29, 72, 0.4);
+    }
+    .emerald-glow {
+      box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.35);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(71, 85, 105, 0.8);
+      border-radius: 9999px;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.65; }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-rose-500 selection:text-white">
+
+  <!-- Top Live Status & Navigation Header -->
+  <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-quant-cyan/20 to-quant-purple/20 border border-quant-cyan/40 flex items-center justify-center shadow-neon-cyan">
-          <i class="fa-solid fa-chart-line text-quant-cyan text-lg"></i>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-600 via-red-600 to-amber-500 flex items-center justify-center shadow-lg shadow-rose-600/30 font-mono-num font-extrabold text-lg text-white">
+          MB
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-lg font-black tracking-tight text-white font-mono">XSMB <span class="text-quant-cyan">QUANTPRO</span></h1>
-            <span class="px-2 py-0.5 text-[10px] font-mono font-bold bg-quant-cyan/10 text-quant-cyan border border-quant-cyan/30 rounded-md">V7.2 LIVE SYNC</span>
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-white">XSMB QuantPro</h1>
+            <span class="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+              <span id="syncDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+              <span id="syncBadgeText">Auto-Sync Cloud</span>
+            </span>
           </div>
-          <p class="text-[11px] text-slate-400 flex items-center gap-1.5 font-mono">
-            <span id="sync-indicator" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span id="sync-status-text" class="text-emerald-400 font-semibold">ĐỒNG BỘ 14 NGÀY ONLINE: LIVE</span>
+          <p id="lastUpdatedSubtitle" class="text-xs text-slate-400">
+            Đang kiểm tra và đồng bộ dữ liệu kỳ quay mới nhất...
           </p>
         </div>
       </div>
 
-      <!-- Controls & Live Timers -->
-      <div class="flex items-center gap-2 sm:gap-4">
-        <!-- 24h Daily Rollover Countdown -->
-        <div class="hidden md:flex items-center gap-2 bg-quant-950 px-3 py-1.5 rounded-xl border border-quant-border text-xs font-mono">
-          <i class="fa-solid fa-arrows-rotate text-quant-amber animate-spin" style="animation-duration: 9s;"></i>
-          <span class="text-slate-400">Đổi Bộ Số Mới Sau:</span>
-          <span id="rollover-countdown" class="text-quant-amber font-bold tracking-wider">--:--:--</span>
+      <!-- Navigation Tabs -->
+      <nav class="flex flex-wrap items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs sm:text-sm">
+        <button id="tabBtnOverview" data-tab="overview" class="nav-tab-btn px-3 py-1.5 rounded-lg font-semibold bg-rose-600 text-white transition">
+          Bảng Kết Quả & Dự Đoán
+        </button>
+        <button id="tabBtnGraph" data-tab="graph" class="nav-tab-btn px-3 py-1.5 rounded-lg font-medium text-amber-300 hover:text-white transition flex items-center gap-1">
+          <span>🕸️ Đồ Thị Cầu Kết Nối</span>
+        </button>
+        <button id="tabBtnAnalytics" data-tab="analytics" class="nav-tab-btn px-3 py-1.5 rounded-lg font-medium text-slate-300 hover:text-white transition">
+          Biểu Đồ Xác Suất
+        </button>
+        <button id="tabBtnMatrix" data-tab="matrix" class="nav-tab-btn px-3 py-1.5 rounded-lg font-medium text-slate-300 hover:text-white transition">
+          Ma Trận 00–99
+        </button>
+      </nav>
+
+      <!-- Action Controls -->
+      <div class="flex items-center gap-2">
+        <div class="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300">
+          <span class="text-slate-400">Khung TK:</span>
+          <select id="windowRangeSelect" class="bg-transparent font-semibold text-amber-400 focus:outline-none cursor-pointer">
+            <option value="10" class="bg-slate-900 text-white">10 kỳ gần nhất</option>
+            <option value="20" class="bg-slate-900 text-white">20 kỳ gần nhất</option>
+            <option value="30" selected class="bg-slate-900 text-white">30 kỳ chuẩn</option>
+            <option value="90" class="bg-slate-900 text-white">Toàn bộ dữ liệu</option>
+          </select>
         </div>
 
-        <!-- Draw Countdown (18:15) -->
-        <div class="hidden lg:flex items-center gap-2 bg-quant-950 px-3 py-1.5 rounded-xl border border-quant-border text-xs font-mono">
-          <i class="fa-regular fa-clock text-quant-rose"></i>
-          <span class="text-slate-400">Giờ Quay (18:15):</span>
-          <span id="header-countdown" class="text-quant-rose font-bold tracking-wider">--:--:--</span>
-        </div>
-
-        <button onclick="toggleMathModal(true)" class="px-3 py-1.5 rounded-xl bg-quant-800 hover:bg-quant-750 text-quant-cyan text-xs font-mono font-semibold border border-quant-border flex items-center gap-1.5 transition-all">
-          <i class="fa-solid fa-square-root-variable"></i>
-          <span class="hidden sm:inline">Mô Hình Toán 14 Ngày</span>
+        <button id="btnSyncNow" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition" title="Tự động tải dữ liệu XSMB mới nhất từ Cloud API">
+          <svg id="syncIcon" class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          <span>Đồng Bộ Ngay</span>
         </button>
 
-        <button onclick="manualForceSync()" class="px-3 py-1.5 rounded-xl bg-quant-cyan/20 hover:bg-quant-cyan/30 text-quant-cyan border border-quant-cyan/40 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-neon-cyan">
-          <i class="fa-solid fa-cloud-arrow-down"></i>
-          <span>Cập Nhật Online</span>
+        <button id="btnOpenAddModal" class="px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1 transition">
+          <span>+ Nhập / Quản Lý KQ</span>
+        </button>
+        <button id="btnDownloadStandaloneWeb" class="px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 text-xs font-semibold flex items-center gap-1 transition" title="Tải toàn bộ trang web (.html) về máy để mở mọi lúc mọi nơi">
+          <span>⬇ Tải Web (.HTML)</span>
         </button>
       </div>
-
     </div>
   </header>
 
-  <!-- MAIN CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- KPI THỐNG KÊ TẦN SUẤT 14 NGÀY (2 TUẦN) GẦN NHẤT -->
-    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-      <!-- KPI 1: Top Lô Nổ Nhiều Nhất 14 Ngày -->
-      <div class="bg-quant-850/90 border border-quant-border rounded-2xl p-4 shadow-terminal relative overflow-hidden group">
-        <div class="flex items-center justify-between text-xs text-slate-400 font-mono mb-2">
-          <span>TOP 1 TẦN SUẤT 14 NGÀY</span>
-          <i class="fa-solid fa-fire text-quant-rose"></i>
+    <!-- Top KPI Summary Strip -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-rose-500">
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span>Kỳ Quay Mới Nhất</span>
+          <span id="kpiProvinceBadge" class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 font-medium">Hà Nội</span>
         </div>
-        <div class="flex items-baseline justify-between mt-1">
-          <div class="text-3xl font-black font-mono text-quant-cyan glow-cyan">68</div>
-          <span class="text-xs font-mono text-emerald-400 font-bold">9 Nháy / 14 Kỳ</span>
-        </div>
-        <div class="text-[10px] text-slate-400 font-mono mt-2 flex items-center justify-between border-t border-quant-border/50 pt-2">
-          <span>Tỉ lệ xuất hiện:</span>
-          <span class="text-white font-bold">64.3% các kỳ mở thưởng</span>
+        <div id="kpiLatestDate" class="text-lg sm:text-xl font-bold text-white mt-1 font-mono-num">29/10/2026</div>
+        <div class="text-xs text-slate-400 mt-1 flex items-center justify-between">
+          <span>Giải ĐB:</span>
+          <span id="kpiLatestSpecial" class="font-mono-num font-bold text-rose-400 text-sm">53401</span>
         </div>
       </div>
 
-      <!-- KPI 2: Cặp Song Thủ Tần Suất Cao Nhất -->
-      <div class="bg-quant-850/90 border border-quant-border rounded-2xl p-4 shadow-terminal relative overflow-hidden group">
-        <div class="flex items-center justify-between text-xs text-slate-400 font-mono mb-2">
-          <span>CẶP LỘN VỀ NHIỀU NHẤT</span>
-          <i class="fa-solid fa-link text-quant-amber"></i>
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-amber-500">
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span>Đếm Ngược Quay Thưởng</span>
+          <span class="text-amber-400 font-semibold">18:15 Hàng Ngày</span>
         </div>
-        <div class="flex items-baseline justify-between mt-1">
-          <div class="text-3xl font-black font-mono text-quant-amber glow-amber">68 - 86</div>
-          <span class="text-xs font-mono text-white font-bold">14 Nháy Tổng</span>
-        </div>
-        <div class="text-[10px] text-emerald-400 font-mono mt-2 flex items-center justify-between border-t border-quant-border/50 pt-2">
-          <span>Độ tương quan Pearson:</span>
-          <span class="font-bold text-white">r = +0.81 (Siêu mạnh)</span>
+        <div id="kpiCountdown" class="text-lg sm:text-xl font-bold text-amber-400 mt-1 font-mono-num">09:48:59</div>
+        <div id="kpiNextDrawInfo" class="text-xs text-slate-400 mt-1 truncate">
+          Kỳ tiếp: Thứ Sáu (Hải Phòng)
         </div>
       </div>
 
-      <!-- KPI 3: Vệ Tinh Kéo Cầu Xuất Hiện -->
-      <div class="bg-quant-850/90 border border-quant-border rounded-2xl p-4 shadow-terminal relative overflow-hidden group">
-        <div class="flex items-center justify-between text-xs text-slate-400 font-mono mb-2">
-          <span>TOP 2 TẦN SUẤT 14 NGÀY</span>
-          <i class="fa-solid fa-satellite-dish text-quant-purple"></i>
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-emerald-500">
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span>Lô Nóng Nhất (Khung TK)</span>
+          <span class="text-emerald-400 font-semibold">Tần suất cao</span>
         </div>
-        <div class="flex items-baseline justify-between mt-1">
-          <div class="text-3xl font-black font-mono text-quant-purple glow-purple">79</div>
-          <span class="text-xs font-mono text-emerald-400 font-bold">8 Nháy / 14 Kỳ</span>
-        </div>
-        <div class="text-[10px] text-slate-400 font-mono mt-2 flex items-center justify-between border-t border-quant-border/50 pt-2">
-          <span>Chạm Đề Chủ Đạo:</span>
-          <span class="text-white font-bold">Chạm 7 - Đuôi 9 (Tổng 6)</span>
+        <div id="kpiHotLoto" class="text-lg sm:text-xl font-bold text-emerald-400 mt-1 font-mono-num">--</div>
+        <div id="kpiHotLotoSub" class="text-xs text-slate-400 mt-1">
+          Xác suất thực nghiệm cao nhất
         </div>
       </div>
 
-      <!-- KPI 4: Trạng thái Seed & Chu Kỳ 24h -->
-      <div class="bg-quant-850/90 border border-quant-border rounded-2xl p-4 shadow-terminal relative overflow-hidden group">
-        <div class="flex items-center justify-between text-xs text-slate-400 font-mono mb-2">
-          <span>CHU KỲ SEED BẤT BIẾN</span>
-          <i class="fa-solid fa-lock text-quant-emerald"></i>
+      <div class="glass-card rounded-2xl p-4 border-l-4 border-l-sky-500">
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span>Lô Về ≥ 2 Nháy Nhiều Nhất</span>
+          <span class="text-sky-400 font-semibold">Độ bùng nổ</span>
         </div>
-        <div class="flex items-baseline justify-between mt-1">
-          <div id="display-today-seed" class="text-2xl font-black font-mono text-quant-emerald glow-emerald">20261102</div>
-          <span class="text-[11px] font-mono text-slate-400">GMT+7</span>
-        </div>
-        <div class="text-[10px] text-quant-cyan font-mono mt-2 flex items-center justify-between border-t border-quant-border/50 pt-2">
-          <span>F5 bảo toàn:</span>
-          <span class="text-emerald-400 font-bold">100% Cố định / Ngày</span>
+        <div id="kpiMultiHitLeader" class="text-lg sm:text-xl font-bold text-sky-400 mt-1 font-mono-num">--</div>
+        <div id="kpiMultiHitSub" class="text-xs text-slate-400 mt-1">
+          Lý thuyết chuẩn: 2.95% / kỳ
         </div>
       </div>
     </section>
 
-    <!-- SECTION 4 VIP QUANT PREDICTION CARDS (BẠCH THỦ LÔ, ĐỀ, 3 CÀNG, LÔ 2 NHÁY) -->
-    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!--AI/STATISTICAL PREDICTION ENGINE HERO PANEL (Always Accessible at Top of Overview) -->
+    <section id="predictionEngineSection" class="glass-card rounded-3xl p-5 sm:p-6 border border-amber-500/30 relative overflow-hidden">
+      <div class="absolute -right-16 -top-16 w-64 h-64 bg-rose-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <!-- CARD 1: BẠCH THỦ LÔ (TẦN SUẤT CAO NHẤT 14 NGÀY) -->
-      <div class="bg-quant-850/90 rounded-2xl p-5 border border-quant-cyan/40 shadow-neon-cyan relative flex flex-col justify-between group">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-800">
         <div>
-          <div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-crosshairs text-quant-cyan"></i> BẠCH THỦ LÔ VIP</span>
-            <span class="px-2 py-0.5 rounded bg-quant-cyan/15 text-quant-cyan text-[10px] font-bold">TOP 1 TẦN SUẤT</span>
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold mb-2">
+            <span>⚡ Mô Hình Xác Suất Thống Kê Đa Biến (Bayes + Nhịp Chu Kỳ + Nhị Thức)</span>
           </div>
-          <div class="my-4 text-center">
-            <div id="val-btl" class="text-6xl font-black font-mono text-quant-cyan glow-cyan tracking-wider transform group-hover:scale-105 transition-all">68</div>
-            <div class="mt-2 text-xs font-mono text-slate-300">
-              Lót Tần Suất: <span id="val-btl-lot" class="text-quant-amber font-bold">86 - 79</span>
-            </div>
-          </div>
-        </div>
-        <div class="space-y-1.5 pt-3 border-t border-quant-border/60 text-xs font-mono">
-          <div class="flex justify-between text-slate-400">
-            <span>Tần suất 14 ngày:</span>
-            <span class="text-white font-bold">9 nháy (378 giải)</span>
-          </div>
-          <div class="flex justify-between text-slate-400">
-            <span>Xác suất nổ P(X≥1):</span>
-            <span class="text-emerald-400 font-bold">89.2%</span>
-          </div>
-          <div class="flex justify-between text-slate-400">
-            <span>Điểm tin cậy Bayes:</span>
-            <span class="text-quant-cyan font-bold">96.8 / 100</span>
-          </div>
-          <button onclick="copyToClipboard('68')" class="w-full mt-2 py-1.5 rounded-lg bg-quant-950 hover:bg-quant-800 border border-quant-cyan/40 text-quant-cyan text-xs font-bold transition-all flex items-center justify-center gap-1.5">
-            <i class="fa-regular fa-copy"></i> Sao chép BTL
-          </button>
-        </div>
-      </div>
-
-      <!-- CARD 2: BẠCH THỦ ĐỀ (GIẢI NÉN CHU KỲ CHẠM & TỔNG) -->
-      <div class="bg-quant-850/90 rounded-2xl p-5 border border-quant-rose/40 shadow-terminal relative flex flex-col justify-between group">
-        <div>
-          <div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-crown text-quant-rose"></i> BẠCH THỦ ĐỀ</span>
-            <span class="px-2 py-0.5 rounded bg-quant-rose/15 text-quant-rose text-[10px] font-bold">ĐẶC BIỆT VIP</span>
-          </div>
-          <div class="my-4 text-center">
-            <div id="val-btd" class="text-6xl font-black font-mono text-quant-rose glow-rose tracking-wider transform group-hover:scale-105 transition-all">79</div>
-            <div class="mt-2 text-xs font-mono text-slate-300">
-              Đầu: <b class="text-quant-cyan">7</b> | Đuôi: <b class="text-quant-amber">9</b> | Tổng: <b class="text-quant-rose">6</b>
-            </div>
-          </div>
-        </div>
-        <div class="space-y-1.5 pt-3 border-t border-quant-border/60 text-xs font-mono">
-          <div class="text-[11px] text-slate-400">Dàn Đề 8 Số Tinh Hoa:</div>
-          <div class="text-[11px] font-bold text-white tracking-wide">79, 97, 68, 86, 24, 42, 15, 51</div>
-          <div class="flex justify-between text-slate-400 pt-1">
-            <span>Tần suất rơi ĐB 14k:</span>
-            <span class="text-emerald-400 font-bold">Chạm 7 & 9 áp đảo</span>
-          </div>
-          <button onclick="copyToClipboard('79')" class="w-full mt-2 py-1.5 rounded-lg bg-quant-950 hover:bg-quant-800 border border-quant-rose/40 text-quant-rose text-xs font-bold transition-all flex items-center justify-center gap-1.5">
-            <i class="fa-regular fa-copy"></i> Sao chép BTĐ
-          </button>
-        </div>
-      </div>
-
-      <!-- CARD 3: BỘ SỐ 3 CÀNG VIP -->
-      <div class="bg-quant-850/90 rounded-2xl p-5 border border-quant-emerald/40 shadow-terminal relative flex flex-col justify-between group">
-        <div>
-          <div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-cubes text-emerald-400"></i> BỘ SỐ 3 CÀNG VIP</span>
-            <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-[10px] font-bold">1 ĂN 960</span>
-          </div>
-          <div class="my-4 text-center">
-            <div id="val-3cang" class="text-5xl font-black font-mono text-emerald-400 glow-emerald tracking-widest transform group-hover:scale-105 transition-all">679</div>
-            <div class="mt-2 text-xs font-mono text-slate-300">
-              Ghép Càng 6 & Càng 8 Tần Suất Cao
-            </div>
-          </div>
-        </div>
-        <div class="space-y-1.5 pt-3 border-t border-quant-border/60 text-xs font-mono">
-          <div class="text-[11px] text-slate-400">Bộ 6 số 3 càng đẹp nhất:</div>
-          <div class="grid grid-cols-3 gap-1 text-center font-bold text-emerald-300 text-[11px]">
-            <span class="bg-quant-950 py-1 rounded border border-quant-border">679</span>
-            <span class="bg-quant-950 py-1 rounded border border-quant-border">868</span>
-            <span class="bg-quant-950 py-1 rounded border border-quant-border">686</span>
-            <span class="bg-quant-950 py-1 rounded border border-quant-border">879</span>
-            <span class="bg-quant-950 py-1 rounded border border-quant-border">697</span>
-            <span class="bg-quant-950 py-1 rounded border border-quant-border">820</span>
-          </div>
-          <button onclick="copyToClipboard('679, 868, 686, 879, 697, 820')" class="w-full mt-2 py-1.5 rounded-lg bg-quant-950 hover:bg-quant-800 border border-emerald-500/40 text-emerald-400 text-xs font-bold transition-all flex items-center justify-center gap-1.5">
-            <i class="fa-regular fa-copy"></i> Sao chép 3 Càng
-          </button>
-        </div>
-      </div>
-
-      <!-- CARD 4: XÁC SUẤT NỔ >= 2 NHÁY -->
-      <div class="bg-quant-850/90 rounded-2xl p-5 border border-quant-amber/40 shadow-terminal relative flex flex-col justify-between group">
-        <div>
-          <div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-bolt text-quant-amber"></i> LÔ NỔ ≥ 2 NHÁY</span>
-            <span class="px-2 py-0.5 rounded bg-quant-amber/15 text-quant-amber text-[10px] font-bold">XÁC SUẤT KÉP</span>
-          </div>
-          <div class="my-4 text-center">
-            <div id="val-2nhay" class="text-6xl font-black font-mono text-quant-amber glow-amber tracking-wider transform group-hover:scale-105 transition-all">68</div>
-            <div class="mt-2 text-xs font-mono text-slate-300">
-              Kèm theo ứng viên lót: <b class="text-white">86</b>
-            </div>
-          </div>
-        </div>
-        <div class="space-y-1.5 pt-3 border-t border-quant-border/60 text-xs font-mono">
-          <div class="flex justify-between text-slate-400">
-            <span>Xác suất nhị thức P(X≥2):</span>
-            <span class="text-quant-amber font-bold">44.6%</span>
-          </div>
-          <div class="flex justify-between text-slate-400">
-            <span>Lịch sử 2 nháy 14 kỳ:</span>
-            <span class="text-white font-bold">3 lần về từ 2 nháy</span>
-          </div>
-          <div class="flex justify-between text-slate-400">
-            <span>Chỉ số lặp Poisson:</span>
-            <span class="text-emerald-400 font-bold">λ = 0.643</span>
-          </div>
-          <button onclick="copyToClipboard('68, 86')" class="w-full mt-2 py-1.5 rounded-lg bg-quant-950 hover:bg-quant-800 border border-quant-amber/40 text-quant-amber text-xs font-bold transition-all flex items-center justify-center gap-1.5">
-            <i class="fa-regular fa-copy"></i> Sao chép Lô 2 Nháy
-          </button>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- SECTION ĐỒ THỊ MARKOV 2D CANVAS & BẢNG XẾP HẠNG TẦN SUẤT 14 NGÀY -->
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-      <!-- 2D Canvas: Chuỗi Markov Cầu Liên Kết -->
-      <div class="lg:col-span-2 bg-quant-900 border border-quant-border rounded-2xl p-5 shadow-terminal flex flex-col justify-between">
-        <div class="flex items-center justify-between pb-3 border-b border-quant-border/70 mb-3">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-network-wired text-quant-cyan"></i>
-            <h3 class="text-xs font-bold text-white font-mono uppercase">Mạng Lưới Vị Trí Cầu Markov (14 Kỳ Gần Nhất)</h3>
-          </div>
-          <span class="text-[10px] font-mono text-quant-cyan bg-quant-cyan/10 px-2 py-0.5 rounded border border-quant-cyan/30">Photon Motion</span>
-        </div>
-        
-        <div class="relative w-full h-72 rounded-xl bg-quant-950 border border-quant-border/50 overflow-hidden">
-          <canvas id="markovCanvas" class="w-full h-full block"></canvas>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+            Tổ Hợp Dự Đoán Xác Suất Kỳ Tiếp Theo (<span id="predTargetDateLabel" class="text-amber-400">30/10/2026</span>)
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-300 mt-1">
+            Tính toán trực tiếp từ <span id="predSampleSizeLabel" class="font-bold text-white">30</span> kỳ mở thưởng gần nhất (tổng <span id="predTotalBallsLabel" class="font-bold text-white">810</span> lồng cầu). Bấm nút bên dưới để chạy mô phỏng & lấy số dự đoán tối ưu.
+          </p>
         </div>
 
-        <div class="flex flex-wrap items-center justify-between text-[11px] font-mono text-slate-400 mt-3 pt-2 border-t border-quant-border/40 gap-2">
-          <span>Hạt Photon di chuyển biểu thị luồng dịch chuyển xác suất giữa các giải</span>
-          <span class="text-emerald-400 font-bold">Trọng tâm hội tụ: Nút 68, 79 & 86</span>
-        </div>
-      </div>
-
-      <!-- Leaderboard: Top 10 Lô Nổ Nhiều Nhất 14 Ngày Qua -->
-      <div class="bg-quant-900 border border-quant-border rounded-2xl p-5 shadow-terminal flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between pb-3 border-b border-quant-border/70 mb-3">
-            <div class="flex items-center gap-2">
-              <i class="fa-solid fa-ranking-star text-quant-amber"></i>
-              <h3 class="text-xs font-bold text-white font-mono uppercase">Bảng Vàng Tần Suất 14 Ngày</h3>
-            </div>
-            <span class="text-[10px] font-mono text-slate-400">Top 6 Lô Hot</span>
-          </div>
-
-          <div id="hot-frequency-list" class="space-y-2.5 font-mono">
-            <!-- Rendered by JS -->
-          </div>
-        </div>
-
-        <div class="mt-4 pt-3 border-t border-quant-border/50 text-[11px] font-mono text-slate-400 flex items-center justify-between">
-          <span>Chu kỳ lấy mẫu:</span>
-          <span class="text-quant-cyan font-bold">378 lượt quay (14 ngày)</span>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- SECTION MA TRẬN 100 SỐ ĐỊNH LƯỢNG (00-99) VỚI BỘ LỌC TẦN SUẤT 14 NGÀY -->
-    <section class="bg-quant-900 border border-quant-border rounded-2xl p-5 lg:p-6 shadow-terminal">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-quant-border/70 mb-4">
-        <div>
-          <h3 class="text-sm font-bold text-white font-mono uppercase flex items-center gap-2">
-            <i class="fa-solid fa-table-cells text-quant-cyan"></i>
-            Ma Trận Định Lượng 100 Số (Tần Suất 14 Ngày, Lô Gan & Điểm Bayes)
-          </h3>
-          <p class="text-xs text-slate-400 font-mono mt-1">Dữ liệu phân tích xác suất nhị thức và Bayes Smoothing dựa trên 14 kỳ gần nhất.</p>
-        </div>
-
-        <!-- Filter & Search Controls -->
-        <div class="flex items-center gap-3">
-          <div class="relative">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-xs text-slate-500"></i>
-            <input type="text" id="matrixSearch" oninput="filterMatrixTable()" placeholder="Tìm số (00-99)..." class="bg-quant-950 border border-quant-border rounded-xl pl-8 pr-3 py-1.5 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-quant-cyan">
-          </div>
-          <select id="matrixSort" onchange="filterMatrixTable()" class="bg-quant-950 border border-quant-border rounded-xl px-3 py-1.5 text-xs font-mono text-slate-300 focus:outline-none focus:border-quant-cyan">
-            <option value="hot14">Sắp xếp: Tần Suất 14 Ngày ↓</option>
-            <option value="bayes">Sắp xếp: Điểm Bayes ↓</option>
-            <option value="gan">Sắp xếp: Gan Nhiều Nhất ↓</option>
-            <option value="num">Sắp xếp: Số 00 -> 99</option>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <select id="strategyModeSelect" class="px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs sm:text-sm font-medium text-slate-200 focus:outline-none focus:border-amber-400">
+            <option value="ensemble" selected>Siêu Thuật Toán 5 Lớp: Bayes + Markov + Cầu Vị Trí + Pascal (Tối Ưu Nhất)</option>
+            <option value="balanced">Mô hình: Hội Tụ Bayes & Chu Kỳ</option>
+            <option value="frequency">Mô hình: Ưu Tiên Tần Suất & Nhịp Đều</option>
+            <option value="reversion">Mô hình: Hồi Quy Trung Bình (Bắt Điểm Rơi)</option>
           </select>
+
+          <button id="btnGeneratePrediction" class="px-5 py-3 rounded-xl bg-gradient-to-r from-rose-600 via-red-600 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-extrabold text-sm shadow-lg shadow-rose-600/30 flex items-center gap-2 transition transform active:scale-95 cursor-pointer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            <span>PHÂN TÍCH & LẤY SỐ DỰ ĐOÁN</span>
+          </button>
         </div>
       </div>
 
-      <!-- Table View -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-left font-mono text-xs">
-          <thead class="bg-quant-850 text-slate-400 text-[10px] uppercase border-b border-quant-border">
-            <tr>
-              <th class="py-2.5 px-3">Số</th>
-              <th class="py-2.5 px-3">Tần Suất 14 Ngày</th>
-              <th class="py-2.5 px-3">Tần Suất 30 Ngày</th>
-              <th class="py-2.5 px-3">Số Kỳ Gan</th>
-              <th class="py-2.5 px-3">Xác Suất P(X≥1)</th>
-              <th class="py-2.5 px-3">Xác Suất P(X≥2)</th>
-              <th class="py-2.5 px-3">Điểm Bayes</th>
-              <th class="py-2.5 px-3 text-right">Phân Loại</th>
-            </tr>
-          </thead>
-          <tbody id="matrixTableBody" class="divide-y divide-quant-border/40 text-slate-300">
-            <!-- Rendered by JS -->
-          </tbody>
-        </table>
+      <!-- 4 Core Prediction Output Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-5">
+        
+        <!-- Card 1: Bạch Thủ Lô -->
+        <div class="rounded-2xl bg-slate-900/90 border border-rose-500/30 p-4 flex flex-col justify-between crimson-glow">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-rose-400">1. Bạch Thủ Lô</span>
+              <span id="btlConfidenceBadge" class="px-2 py-0.5 text-[11px] rounded-full bg-rose-500/20 text-rose-300 font-mono-num font-semibold">Độ tin cậy: --%</span>
+            </div>
+            <div class="my-3 flex items-baseline gap-3">
+              <div id="btlMainNumber" class="text-5xl font-extrabold font-mono-num text-white tracking-wider">--</div>
+              <div class="text-xs text-slate-400">
+                <div>Lót bảo toàn: <span id="btlBackupNumbers" class="font-mono-num font-bold text-amber-300">-- , --</span></div>
+                <div class="mt-0.5">XS nổ ≥1 nháy: <span id="btlProbText" class="font-mono-num font-bold text-emerald-400">--%</span></div>
+              </div>
+            </div>
+            <p id="btlReasonText" class="text-xs text-slate-300 leading-relaxed bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+              Nhấn nút "Phân Tích & Lấy Số Dự Đoán" để hệ thống tính điểm hội tụ chu kỳ và xác suất hậu nghiệm Bayes.
+            </p>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Lý thuyết 1 kỳ: 23.79%</span>
+            <span id="btlCycleTag" class="font-mono-num text-slate-300">Chu kỳ: -- ngày</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Bạch Thủ Đề -->
+        <div class="rounded-2xl bg-slate-900/90 border border-amber-500/30 p-4 flex flex-col justify-between gold-glow">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-400">2. Bạch Thủ Đề (ĐB)</span>
+              <span id="btdTouchBadge" class="px-2 py-0.5 text-[11px] rounded-full bg-amber-500/20 text-amber-300 font-semibold">Chạm: --</span>
+            </div>
+            <div class="my-3 flex items-baseline gap-3">
+              <div id="btdMainNumber" class="text-5xl font-extrabold font-mono-num text-amber-400 tracking-wider">--</div>
+              <div class="text-xs text-slate-400">
+                <div>Tổng đề kết: <span id="btdSumText" class="font-mono-num font-bold text-white">--</span></div>
+                <div class="mt-0.5">XS chạm/tổng: <span id="btdProbText" class="font-mono-num font-bold text-emerald-400">--%</span></div>
+              </div>
+            </div>
+            <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+              <div class="text-[11px] text-slate-400 mb-1">Dàn Đề 8 Số Tinh Hoa (Theo Cầu & Tổng):</div>
+              <div id="btdDanDeList" class="font-mono-num text-xs font-bold text-amber-300 tracking-wide">
+                -- , -- , -- , -- , -- , -- , -- , --
+              </div>
+            </div>
+          </div>
+          <div id="btdReasonFooter" class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Phân tích Đầu/Đuôi Giải ĐB</span>
+            <span id="btdHeadTailTag" class="font-mono-num text-slate-300">Đầu -- / Đuôi --</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Dự Đoán 3 Càng -->
+        <div class="rounded-2xl bg-slate-900/90 border border-purple-500/30 p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-purple-400">3. Bộ Số 3 Càng VIP</span>
+              <span id="cangTopDigitBadge" class="px-2 py-0.5 text-[11px] rounded-full bg-purple-500/20 text-purple-300 font-mono-num font-semibold">Càng mạnh: --</span>
+            </div>
+            <div class="my-3 flex items-baseline gap-3">
+              <div id="cangMainNumber" class="text-4xl sm:text-5xl font-extrabold font-mono-num text-purple-300 tracking-wider">---</div>
+              <div class="text-xs text-slate-400">
+                <div>3 Càng Lô: <span id="cangLotoNumber" class="font-mono-num font-bold text-white">---</span></div>
+                <div class="mt-0.5">XS Càng শত: <span id="cangProbText" class="font-mono-num font-bold text-purple-300">--%</span></div>
+              </div>
+            </div>
+            <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+              <div class="text-[11px] text-slate-400 mb-1">Tổ hợp 6 số 3 Càng Đề & Lô khuyến nghị:</div>
+              <div id="cangComboList" class="font-mono-num text-xs font-bold text-purple-200 tracking-wide">
+                --- , --- , --- , --- , --- , ---
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Lý thuyết 3 càng: 0.1% (ĐB) / 2.3% (Lô)</span>
+            <span id="cangFreqTag" class="font-mono-num text-slate-300">Càng kết: --</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Xác Suất Lô Về 2 Nháy -->
+        <div class="rounded-2xl bg-slate-900/90 border border-emerald-500/30 p-4 flex flex-col justify-between emerald-glow">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">4. Xác Suất Về ≥ 2 Nháy</span>
+              <span class="px-2 py-0.5 text-[11px] rounded-full bg-emerald-500/20 text-emerald-300 font-mono-num font-semibold">Phân phối Nhị Thức</span>
+            </div>
+            <div class="my-3 flex items-baseline gap-3">
+              <div id="twoHitMainNumber" class="text-5xl font-extrabold font-mono-num text-emerald-400 tracking-wider">--</div>
+              <div class="text-xs text-slate-400">
+                <div>XS về ≥ 2 nháy: <span id="twoHitProbMain" class="font-mono-num font-bold text-emerald-300 text-sm">--%</span></div>
+                <div class="mt-0.5">Đã nổ ≥2 nháy: <span id="twoHitPastCount" class="font-mono-num font-bold text-white">-- lần</span></div>
+              </div>
+            </div>
+            <div class="bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80 space-y-1.5" id="twoHitTopListContainer">
+              <!-- Populated dynamically with Top 4 candidates and exact P(X >= 2) -->
+            </div>
+          </div>
+          <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Chuẩn P(X≥2) = 2.95%</span>
+            <span id="twoHitLambdaTag" class="font-mono-num text-emerald-300">Hệ số vượt trội: --x</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Expandable Formula & Methodology Explanation -->
+      <div class="mt-4 pt-3 border-t border-slate-800/70 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="inline-block w-2 h-2 rounded-full bg-amber-400"></span>
+          <span id="predictionTimestampText">Cập nhật tính toán tự động theo dữ liệu mới nhất.</span>
+        </div>
+        <button id="btnToggleFormula" class="text-amber-400 hover:text-amber-300 font-semibold underline cursor-pointer">
+          Xem công thức toán học & phương pháp tính xác suất
+        </button>
+      </div>
+
+      <div id="formulaExplanationBox" class="hidden mt-3 p-4 rounded-2xl bg-slate-950/90 border border-slate-800 text-xs text-slate-300 space-y-2 leading-relaxed">
+        <div class="font-bold text-amber-300 text-sm">Cơ sở Toán học Xác suất Thống kê áp dụng trên XSMB QuantPro:</div>
+        <ul class="list-disc pl-5 space-y-1.5">
+          <li><strong>Xác suất Lô Tô về ít nhất 1 nháy (kỳ vọng lý thuyết):</strong> Mỗi kỳ XSMB quay 27 giải. Với mỗi giải độc lập có xác suất không về số $k$ là $0.99$, xác suất lý thuyết để 1 số bất kỳ xuất hiện $\ge 1$ lần là $P_0(X \ge 1) = 1 - (0.99)^{27} \approx 23.792\%$.</li>
+          <li><strong>Điểm Hội Tụ Bạch Thủ Lô (Bayesian & Cycle Convergence):</strong> Kết hợp ước lượng xác suất hậu nghiệm Bayes $\hat{p}_k = \frac{\alpha + c_k}{\alpha + \beta + 27N}$ với hàm mật độ chu kỳ Gaussian $S_{\text{cycle}}(k) = \exp\left(-\frac{(g_k - \mu_k)^2}{2\sigma_k^2}\right)$ (trong đó $g_k$ là số ngày chưa về hiện tại, $\mu_k$ là chu kỳ trung bình của số $k$) và ma trận chuyển trạng thái Markov bậc 1 từ Giải Đặc Biệt ngày hôm trước.</li>
+          <li><strong>Xác suất Số về Hai Nháy trở lên $P(X \ge 2)$:</strong> Áp dụng phân phối Nhị thức (Binomial Distribution) với $n = 27$ phép thử và tham số cường độ thực nghiệm $\lambda_k = 27 \cdot \hat{p}_k$ được hiệu chỉnh bởi tỷ lệ bội nháy lịch sử:
+            $$P(X_k \ge 2) = 1 - (1 - \hat{p}_k)^{27} - 27 \cdot \hat{p}_k (1 - \hat{p}_k)^{26}$$
+            Ở trạng thái ngẫu nhiên đồng đều ($\hat{p} = 0.01$), $P_0(X \ge 2) \approx 2.954\%$. Các con số có nhịp rơi chùm (clustering) có $P(X_k \ge 2)$ thực nghiệm đạt từ $4.2\%$ đến $7.8\%$.</li>
+          <li><strong>Bạch Thủ Đề & 3 Càng:</strong> Phân tích phân phối Đầu (0–9), Đuôi (0–9), Tổng (0–9) và Càng hàng trăm (0–9) bằng độ lệch chuẩn chuẩn hóa để nhận diện chạm/tổng đang vào nhịp rơi xác suất cao nhất.</li>
+        </ul>
       </div>
     </section>
 
-    <!-- FOOTER -->
-    <footer class="border-t border-quant-border/80 pt-6 pb-12 text-center text-xs font-mono text-slate-500 space-y-2">
-      <div class="flex items-center justify-center gap-2 text-slate-400 font-semibold">
-        <i class="fa-solid fa-shield-halved text-quant-cyan"></i>
-        <span>XSMB QuantPro Terminal - Hệ Thống Đồng Bộ Tần Suất Định Lượng 14 Ngày Hàng Ngày</span>
+    <!-- INTERACTIVE GRAPH BRIDGE NETWORK & PASCAL TRIANGLE SECTION -->
+    <section id="graphBridgeSection" class="glass-card rounded-3xl p-5 sm:p-6 border border-indigo-500/30 relative overflow-hidden">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div>
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-semibold mb-1.5">
+            <span>🕸️ Mô Hình Đồ Thị Cầu Kết Nối (Interactive Graph Network & Positional Bridges)</span>
+          </div>
+          <h2 class="text-lg sm:text-xl font-extrabold text-white flex items-center gap-2">
+            <span>Sơ Đồ Mạng Lưới Cầu Chạy Thông & Xác Suất Chuyển Trạng Thái Markov</span>
+            <span id="graphBacktestBadge" class="px-2.5 py-0.5 text-xs rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono-num">Backtest: 86.7%</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Quét tự động 11.449 cặp vị trí giải thưởng liên tiếp, kết hợp Cầu Tam Giác Pascal (ĐB+G1) và Ma trận Bạc Nhớ Markov. Nhấp vào từng nút (Node) trên đồ thị để soi chi tiết đường truyền cầu.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+            <button data-graph-mode="all" class="graph-mode-btn px-2.5 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold transition">Toàn Mạng Lưới</button>
+            <button data-graph-mode="positional" class="graph-mode-btn px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white transition">Cầu Vị Trí Thông</button>
+            <button data-graph-mode="markov" class="graph-mode-btn px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white transition">Markov Bạc Nhớ</button>
+            <button data-graph-mode="pascal" class="graph-mode-btn px-2.5 py-1.5 rounded-lg text-slate-300 hover:text-white transition">Tháp Pascal</button>
+          </div>
+          <button id="btnAnimateGraphPulse" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-amber-300 transition cursor-pointer">
+            ⚡ Kích Xung Cầu
+          </button>
+          <button id="btnExportGraphPng" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition cursor-pointer">
+            📷 Lưu Ảnh Graph
+          </button>
+        </div>
       </div>
-      <p class="max-w-2xl mx-auto text-[11px] leading-relaxed">
-        Hệ thống tự động kích hoạt tính toán lại bộ số mới sau đúng 24h lúc 00:00:00 (hoặc sau giờ quay 18:15). Thuật toán Mulberry32 PRNG cam kết 100% giữ nguyên bộ số duy nhất khi F5 trong cùng 1 ngày.
-      </p>
-      <div class="text-[10px] text-slate-600">
-        © 2026 XSMB QuantPro. 14-Day Rolling Hot Frequency Engine v7.2.
+
+      <!-- Main Graph Workspace: Left 8 Cols Interactive Force/Layered Graph Canvas, Right 4 Cols Node Inspector & Pascal Tower -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-5">
+        <div class="lg:col-span-8 flex flex-col">
+          <div class="relative w-full h-[430px] sm:h-[470px] rounded-2xl bg-slate-950/90 border border-slate-800/90 overflow-hidden shadow-inner">
+            <canvas id="bridgeNetworkCanvas" class="w-full h-full cursor-pointer"></canvas>
+            <!-- Legend Overlay -->
+            <div class="absolute top-3 left-3 flex flex-wrap items-center gap-3 px-3 py-1.5 rounded-xl bg-slate-900/85 backdrop-blur border border-slate-800 text-[11px] text-slate-300 pointer-events-none">
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>Nguồn Cầu Kỳ Trước</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block"></span>Nút Hội Tụ Thuật Toán</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>Bạch Thủ Lô / Đề</span>
+              <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>Lô 2 Nháy / 3 Càng</span>
+            </div>
+            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur border border-slate-800/80 text-[11px] text-slate-400 pointer-events-none">
+              <span id="graphHoverStatusText">💡 Gợi ý: Nhấp hoặc di chuột vào bất kỳ Nút (Node) nào để khóa đường cầu và xem giải thích toán học.</span>
+              <span class="font-mono-num text-indigo-300 hidden sm:inline">Độ dày cạnh = Trọng số xác suất w(u,v)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right 4 Cols: Selected Node Bridge Inspector + Live Positional Bridge List + Pascal Pyramid -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+          <!-- Selected Node Detail Card -->
+          <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Chi Tiết Nút Cầu Đang Chọn</span>
+              <span id="inspectorNodeTypeBadge" class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[11px] font-semibold">Đích Dự Đoán</span>
+            </div>
+            <div class="mt-2.5 flex items-baseline justify-between">
+              <div id="inspectorNodeTitle" class="text-2xl font-extrabold font-mono-num text-white">--</div>
+              <div id="inspectorNodeScore" class="text-xs font-mono-num font-bold text-emerald-400">Xác suất hội tụ: --%</div>
+            </div>
+            <p id="inspectorNodeDesc" class="mt-2 text-xs text-slate-300 leading-relaxed bg-slate-950/70 p-2.5 rounded-xl border border-slate-800/80">
+              Nhấp vào một nút trên sơ đồ mạng lưới bên trái để xem chi tiết các đường cầu kết nối tới con số đó.
+            </p>
+            <div id="inspectorConnectedList" class="mt-2.5 space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar text-xs">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Top Positional Bridges (Cầu Vị Trí Chạy Thông) & Pascal Pyramid -->
+          <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Cầu Vị Trí Thông & Tháp Pascal</span>
+                <span id="pascalResultBadge" class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[11px] font-mono-num font-bold">Pascal: --</span>
+              </div>
+              <div id="positionalBridgeCards" class="mt-2.5 space-y-1.5 text-xs">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+
+            <div class="mt-3 pt-2.5 border-t border-slate-800/80">
+              <div class="text-[11px] text-slate-400 mb-1 flex items-center justify-between">
+                <span>Tháp Cầu Pascal (Ghép Giải ĐB + Giải Nhất):</span>
+                <span id="pascalBaseString" class="font-mono-num text-slate-300">--</span>
+              </div>
+              <div id="pascalPyramidBox" class="p-2 rounded-xl bg-slate-950/90 border border-slate-800 font-mono-num text-[10px] sm:text-[11px] text-center leading-tight text-amber-300/90 overflow-x-auto">
+                <!-- Pascal triangle rows -->
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </footer>
+    </section>
+
+    <!-- TAB 1: OVERVIEW (Traditional Result Table + Loto Head/Tail + Quick Stats) -->
+    <div id="tabContentOverview" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left 7 Cols: Official XSMB Result Board -->
+        <div class="lg:col-span-7 glass-card rounded-3xl p-5 border border-slate-800">
+          <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800">
+            <div>
+              <span class="text-xs font-semibold uppercase tracking-wider text-rose-400">Bảng Mở Thưởng Truyền Thống</span>
+              <h3 id="boardTitleText" class="text-lg font-extrabold text-white mt-0.5">
+                Kết Quả Xổ Số Miền Bắc — 29/10/2026
+              </h3>
+            </div>
+
+            <!-- Date Picker Controls -->
+            <div class="flex items-center gap-1.5">
+              <button id="btnPrevDraw" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 transition" title="Kỳ trước">
+                &#8592;
+              </button>
+              <select id="drawDateSelect" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs sm:text-sm font-mono-num font-semibold text-white focus:outline-none focus:border-rose-500">
+              </select>
+              <button id="btnNextDraw" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 transition" title="Kỳ kế tiếp">
+                &#8594;
+              </button>
+            </div>
+          </div>
+
+          <!-- Display Filter Mode (Full digits vs 2 last digits vs 3 last digits) -->
+          <div class="flex flex-wrap items-center justify-between gap-2 my-3 text-xs">
+            <div id="drawMetaCodeText" class="text-slate-400 font-mono-num">
+              Ký hiệu ĐB: <span class="text-amber-300 font-semibold">4KM-8KM-14KM-6KM-5KM-3KM</span>
+            </div>
+            <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-slate-800">
+              <button data-digit-mode="full" class="digit-mode-btn px-2.5 py-1 rounded bg-rose-600 text-white font-semibold transition">Đầy đủ</button>
+              <button data-digit-mode="last2" class="digit-mode-btn px-2.5 py-1 rounded text-slate-400 hover:text-white transition">2 Số Cuối</button>
+              <button data-digit-mode="last3" class="digit-mode-btn px-2.5 py-1 rounded text-slate-400 hover:text-white transition">3 Số Cuối</button>
+            </div>
+          </div>
+
+          <!-- Prize Table -->
+          <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60">
+            <table class="w-full text-center border-collapse">
+              <tbody id="xsmbPrizeTableBody" class="divide-y divide-slate-800/90 text-sm">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Day Highlights: Multi-hit lotos, Double lotos (Kép), Silent heads/tails -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 text-xs">
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400 font-medium">Lô Về ≥ 2 Nháy Trong Kỳ:</div>
+              <div id="dayMultiHitBadges" class="mt-1.5 flex flex-wrap gap-1.5 font-mono-num font-bold"></div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400 font-medium">Lô Kép Xuất Hiện:</div>
+              <div id="dayKepBadges" class="mt-1.5 flex flex-wrap gap-1.5 font-mono-num font-bold"></div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="text-slate-400 font-medium">Đầu Câm / Đuôi Câm:</div>
+              <div id="daySilentBadges" class="mt-1.5 font-mono-num font-semibold text-amber-300"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right 5 Cols: Loto Đầu - Đuôi Board & Top Lô Gan / Lô Rơi -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+          <div class="glass-card rounded-3xl p-5 border border-slate-800">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div>
+                <span class="text-xs font-semibold uppercase tracking-wider text-amber-400">Bảng Lô Tô Trực Quan</span>
+                <h3 class="text-base font-bold text-white mt-0.5">Thống Kê Đầu — Đuôi Lô Tô (0–9)</h3>
+              </div>
+              <span id="lotoCountBadge" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono-num text-slate-300">27 giải</span>
+            </div>
+
+            <div class="mt-3 overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60">
+              <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                <thead>
+                  <tr class="bg-slate-900/90 text-slate-400 border-b border-slate-800">
+                    <th class="py-2 px-3 w-14 text-center font-bold">Đầu</th>
+                    <th class="py-2 px-3 font-bold">Lô Tô Xuất Hiện (Đuôi)</th>
+                    <th class="py-2 px-3 w-16 text-right font-bold">Tổng</th>
+                  </tr>
+                </thead>
+                <tbody id="lotoHeadTailBody" class="divide-y divide-slate-800/80 font-mono-num">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Quick Statistical Highlights (Lô Gan & Chu Kỳ Đẹp) -->
+          <div class="glass-card rounded-3xl p-5 border border-slate-800 flex-1">
+            <h3 class="text-base font-bold text-white pb-3 border-b border-slate-800 flex items-center justify-between">
+              <span>Cảnh Báo Lô Gan & Cầu Chu Kỳ Đẹp</span>
+              <span class="text-xs font-normal text-slate-400">Cập nhật tự động</span>
+            </h3>
+            <div class="mt-3 space-y-3 text-xs">
+              <div>
+                <div class="text-slate-400 font-medium mb-1.5">Top Lô Gan Lâu Chưa Về (Cẩn Trọng Khi Vào Tiền):</div>
+                <div id="topLoGanList" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+              </div>
+              <div class="pt-2 border-t border-slate-800/80">
+                <div class="text-slate-400 font-medium mb-1.5">Top Số Đạt Điểm Rơi Chu Kỳ Vàng (Sát Chu Kỳ TB):</div>
+                <div id="topGoldenCycleList" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 2: PROBABILITY CHARTS & VISUAL ANALYTICS -->
+    <div id="tabContentAnalytics" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-card rounded-3xl p-5 border border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-base font-bold text-white">Top 15 Số Có Tần Suất & Xác Suất Thực Nghiệm Cao Nhất</h3>
+              <p class="text-xs text-slate-400">So sánh với đường chuẩn xác suất lý thuyết 23.79%/kỳ</p>
+            </div>
+          </div>
+          <div class="relative h-72 w-full">
+            <canvas id="chartTopFrequency"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-5 border border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-base font-bold text-white">Top 12 Số Có Xác Suất Về ≥ 2 Nháy Cao Nhất (%)</h3>
+              <p class="text-xs text-slate-400">Tính theo phân phối Nhị thức & tần suất bội nháy thực tế</p>
+            </div>
+          </div>
+          <div class="relative h-72 w-full">
+            <canvas id="chartTwoHitProb"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-5 border border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-base font-bold text-white">Phân Bố Tần Suất Đầu Lô (0–9) & Đuôi Lô (0–9)</h3>
+              <p class="text-xs text-slate-400">Đánh giá độ lệch chuẩn giữa các chạm đầu và chạm đuôi</p>
+            </div>
+          </div>
+          <div class="relative h-72 w-full">
+            <canvas id="chartHeadTailDist"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-3xl p-5 border border-slate-800">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-base font-bold text-white">Phân Bố Chữ Số Hàng Trăm (Càng 0–9) & Tổng Đề</h3>
+              <p class="text-xs text-slate-400">Cơ sở xác suất để ghép 3 Càng Đề và 3 Càng Lô</p>
+            </div>
+          </div>
+          <div class="relative h-72 w-full">
+            <canvas id="chartThreeCangDist"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: FULL 00-99 PROBABILITY MATRIX -->
+    <div id="tabContentMatrix" class="hidden space-y-4">
+      <div class="glass-card rounded-3xl p-5 border border-slate-800">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800">
+          <div>
+            <h3 class="text-lg font-bold text-white">Ma Trận Xác Suất Thống Kê Toàn Bộ 100 Số (00–99)</h3>
+            <p class="text-xs text-slate-400">Tra cứu chi tiết tần suất, số ngày gan, chu kỳ trung bình, xác suất nổ ≥1 nháy và xác suất về ≥2 nháy</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <input id="matrixSearchInput" type="text" placeholder="Tìm số (VD: 01, 75, 88)..." class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-rose-500 w-44" />
+            <select id="matrixSortSelect" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none">
+              <option value="btlScore">Sắp xếp: Điểm Bạch Thủ Lô (Cao → Thấp)</option>
+              <option value="prob2Hits">Sắp xếp: Xác Suất Về ≥ 2 Nháy (Cao → Thấp)</option>
+              <option value="totalHits">Sắp xếp: Tổng Số Nháy Đã Về (Cao → Thấp)</option>
+              <option value="gapDesc">Sắp xếp: Lô Gan Lâu Chưa Về (Cao → Thấp)</option>
+              <option value="numAsc">Sắp xếp: Thứ Tự Số (00 → 99)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mt-4 overflow-x-auto custom-scrollbar max-h-[540px]">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead class="sticky top-0 bg-slate-900 text-slate-300 border-b border-slate-700 z-10">
+              <tr>
+                <th class="py-2.5 px-3 font-bold text-center">Con Số</th>
+                <th class="py-2.5 px-3 font-bold text-right">Tổng Nháy</th>
+                <th class="py-2.5 px-3 font-bold text-right">Số Kỳ Về</th>
+                <th class="py-2.5 px-3 font-bold text-right">Kỳ Về ≥2 Nháy</th>
+                <th class="py-2.5 px-3 font-bold text-right">Gan Hiện Tại</th>
+                <th class="py-2.5 px-3 font-bold text-right">Chu Kỳ TB</th>
+                <th class="py-2.5 px-3 font-bold text-right">XS Về ≥1 Nháy</th>
+                <th class="py-2.5 px-3 font-bold text-right">XS Về ≥2 Nháy</th>
+                <th class="py-2.5 px-3 font-bold text-right">Điểm Hội Tụ</th>
+                <th class="py-2.5 px-3 font-bold text-center">Đánh Giá Cầu</th>
+              </tr>
+            </thead>
+            <tbody id="matrixTableBody" class="divide-y divide-slate-800/80 font-mono-num">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
   </main>
 
-  <!-- JAVASCRIPT LOGIC: MULBERRY32 PRNG, 14-DAY STATS, MARKOV CANVAS & 24H AUTO SYNC -->
-  <script>
-    /* ========================================================================
-       1. DAILY SEED & 24-HOUR AUTO-ROLLOVER ENGINE
-    ======================================================================== */
-    function getTodayString() {
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = String(now.getMonth() + 1).padStart(2, '0');
-      const d = String(now.getDate()).padStart(2, '0');
-      return `${y}${m}${d}`;
-    }
+  <!-- Modal for Manual Result Entry / Cloud API Inspection / Import-Export -->
+  <div id="dataModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-card rounded-3xl max-w-2xl w-full p-6 border border-slate-700 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <h3 class="text-lg font-bold text-white">Quản Lý Dữ Liệu & Tự Động Cập Nhật Dài Hạn</h3>
+          <p class="text-xs text-slate-400">Trang web tự động đồng bộ từ GitHub XSMB Live Dataset mỗi lần mở và lưu trữ bền vững trong trình duyệt</p>
+        </div>
+        <button id="btnCloseModal" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold">✕</button>
+      </div>
 
-    function createPRNG(seed) {
-      let s = seed >>> 0;
-      return function() {
-        s = (s + 0x6D2B79F5) | 0;
-        let t = Math.imul(s ^ (s >>> 15), 1 | s);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-      };
-    }
-
-    function hashStringToSeed(str) {
-      let hash = 0;
-      for (let i = 0; i < str.length; i++) {
-        hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        hash |= 0;
-      }
-      return hash;
-    }
-
-    let currentDayStr = getTodayString();
-    let currentPRNG = createPRNG(hashStringToSeed(currentDayStr + "_14DAY_QUANT_V7"));
-
-    /* ========================================================================
-       2. TẬP DỮ LIỆU TẦN SUẤT 14 NGÀY & MA TRẬN 100 SỐ
-    ======================================================================== */
-    // Top cụm lô hay về nhất 14 ngày qua (378 giải)
-    const HOT_14_DAYS = [
-      { num: "68", count14: 9, count30: 16, gan: 0, p1: 89.2, p2: 44.6, bayes: 96.8, type: "SUPER_HOT" },
-      { num: "79", count14: 8, count30: 14, gan: 0, p1: 84.5, p2: 36.2, bayes: 94.2, type: "SUPER_HOT" },
-      { num: "86", count14: 7, count30: 13, gan: 1, p1: 81.3, p2: 32.8, bayes: 91.5, type: "HOT_PAIR" },
-      { num: "20", count14: 6, count30: 11, gan: 2, p1: 76.4, p2: 28.5, bayes: 88.0, type: "CYCLE_REVERT" },
-      { num: "52", count14: 6, count30: 10, gan: 1, p1: 75.1, p2: 27.0, bayes: 86.4, type: "HOT" },
-      { num: "14", count14: 5, count30: 9,  gan: 2, p1: 71.8, p2: 24.3, bayes: 84.2, type: "HOT" }
-    ];
-
-    // Tạo bảng 100 số hoàn chỉnh (00-99)
-    let matrix100 = [];
-    function build100Matrix() {
-      matrix100 = [];
-      const hotMap = {};
-      HOT_14_DAYS.forEach(item => { hotMap[item.num] = item; });
-
-      for (let i = 0; i < 100; i++) {
-        const numStr = String(i).padStart(2, '0');
-        if (hotMap[numStr]) {
-          matrix100.push({ ...hotMap[numStr] });
-        } else {
-          // Sinh các chỉ số phân phối thực tế dựa vào PRNG ngày cố định
-          const pseudoRand = currentPRNG();
-          const count14 = Math.floor(pseudoRand * 5) + 1; // 1 -> 5 nháy
-          const count30 = count14 + Math.floor(currentPRNG() * 7) + 2;
-          const gan = numStr === '80' ? 18 : (numStr === '87' ? 13 : Math.floor(currentPRNG() * 9));
-          const p1 = +(55 + (count14 * 4.8) - (gan * 0.9)).toFixed(1);
-          const p2 = +(12 + (count14 * 2.5)).toFixed(1);
-          const bayes = +(50 + (count14 * 6.5) - (gan * 0.8)).toFixed(1);
-          const type = gan >= 12 ? 'GAN_ALERT' : (count14 >= 4 ? 'WARM' : 'NORMAL');
-
-          matrix100.push({
-            num: numStr,
-            count14,
-            count30,
-            gan,
-            p1: Math.min(p1, 95),
-            p2: Math.min(p2, 45),
-            bayes: Math.min(bayes, 96),
-            type
-          });
-        }
-      }
-    }
-
-    /* ========================================================================
-       3. RENDER GIAO DIỆN & BẢNG
-    ======================================================================== */
-    function renderMainUI() {
-      document.getElementById('display-today-seed').innerText = currentDayStr;
-      
-      // Render Leaderboard Top 14 Ngày
-      const hotListEl = document.getElementById('hot-frequency-list');
-      hotListEl.innerHTML = HOT_14_DAYS.map((item, idx) => `
-        <div class="flex items-center justify-between p-2 rounded-xl bg-quant-950 border border-quant-border/60 hover:border-quant-cyan/40 transition-all">
-          <div class="flex items-center gap-2.5">
-            <span class="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-black ${idx === 0 ? 'bg-quant-cyan text-quant-950 shadow-neon-cyan' : (idx === 1 ? 'bg-quant-rose text-white' : 'bg-quant-800 text-slate-300')}">#${idx + 1}</span>
-            <span class="text-base font-black text-white glow-cyan">${item.num}</span>
-            <span class="text-[10px] text-slate-400">(${item.count14} nháy / 14k)</span>
+      <!-- Manual Entry Form -->
+      <div class="space-y-3 bg-slate-900/70 p-4 rounded-2xl border border-slate-800">
+        <div class="text-xs font-bold uppercase tracking-wider text-amber-400">Thêm / Cập Nhật Kết Quả Kỳ Quay Thủ Công</div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1">Ngày mở thưởng (YYYY-MM-DD)</label>
+            <input id="inputDrawDate" type="date" value="2026-10-30" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono-num" />
           </div>
-          <div class="flex items-center gap-2">
-            <div class="w-16 bg-quant-800 h-2 rounded-full overflow-hidden">
-              <div class="bg-gradient-to-r from-quant-cyan to-quant-emerald h-full rounded-full" style="width: ${(item.count14 / 10) * 100}%"></div>
-            </div>
-            <span class="text-[11px] font-bold text-emerald-400">${item.p1}%</span>
+          <div>
+            <label class="block text-slate-400 mb-1">Giải Đặc Biệt (5 chữ số)</label>
+            <input id="inputSpecialPrize" type="text" maxlength="5" placeholder="VD: 58392" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-rose-400 font-mono-num font-bold" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Giải Nhất (5 chữ số)</label>
+            <input id="inputFirstPrize" type="text" maxlength="5" placeholder="VD: 19482" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono-num" />
           </div>
         </div>
-      `).join('');
+        <div class="text-xs">
+          <label class="block text-slate-400 mb-1">Dán nhanh các giải còn lại hoặc danh sách 27 số lô (cách nhau bằng dấu phẩy hoặc khoảng trắng):</label>
+          <textarea id="inputOtherPrizes" rows="2" placeholder="VD: 62988 46737 48305 12492 78217 29106 90525 25381 4352 7734 0900 2827 1885 3123 3284 2452 7149 6951 759 626 969 96 49 18 55" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-slate-200 font-mono-num"></textarea>
+        </div>
+        <div class="flex items-center justify-end gap-2">
+          <button id="btnSaveManualDraw" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition cursor-pointer">
+            Lưu Kỳ Quay & Tính Lại Xác Suất
+          </button>
+        </div>
+      </div>
 
-      filterMatrixTable();
-    }
+      <!-- Cloud Endpoints Info & Export/Reset -->
+      <div class="space-y-2 text-xs text-slate-300 bg-slate-900/40 p-4 rounded-2xl border border-slate-800">
+        <div class="font-bold text-white">Cơ chế hoạt động bền vững:</div>
+        <p class="text-slate-400 leading-relaxed">
+          Mỗi khi bạn mở trang web, hệ thống tự động gọi đồng bộ song song tới kho dữ liệu XSMB tự động cập nhật hàng ngày qua GitHub Actions (<code class="text-emerald-400">raw.githubusercontent.com/khiemdoan/vietnam-lottery-xsmb-analysis</code> & CDN <code class="text-emerald-400">cdn.jsdelivr.net</code>), kết hợp với bộ nhớ <code class="text-amber-300">localStorage</code> trên trình duyệt của bạn.
+        </p>
+        <div class="flex flex-wrap items-center gap-2 pt-2">
+          <button id="btnExportJson" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold cursor-pointer">
+            Xuất Dữ Liệu JSON
+          </button>
+          <button id="btnResetDefaultData" class="px-3 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900/70 border border-rose-800/60 text-rose-300 font-semibold cursor-pointer">
+            Khôi Phục Dữ Liệu Gốc Chuẩn
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    function filterMatrixTable() {
-      const query = document.getElementById('matrixSearch').value.trim();
-      const sortVal = document.getElementById('matrixSort').value;
+  <!-- Toast Notification -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 hidden">
+    <div class="px-4 py-3 rounded-2xl bg-slate-900/95 border border-emerald-500/40 text-white shadow-2xl flex items-center gap-2.5 text-xs sm:text-sm">
+      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+      <span id="toastMessage">Đã cập nhật số liệu!</span>
+    </div>
+  </div>
 
-      let list = [...matrix100];
+  <footer class="border-t border-slate-900 bg-slate-950/80 py-4 px-4 sm:px-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span>XSMB QuantPro — Hệ Thống Phân Tích Xác Suất Thống Kê Xổ Số Kiến Thiết Miền Bắc</span>
+      <span>Tự động đồng bộ dữ liệu mở thưởng hàng ngày • Lưu trữ bền vững</span>
+    </div>
+  </footer>
 
-      if (query) {
-        list = list.filter(item => item.num.includes(query));
-      }
-
-      if (sortVal === 'hot14') {
-        list.sort((a, b) => b.count14 - a.count14);
-      } else if (sortVal === 'bayes') {
-        list.sort((a, b) => b.bayes - a.bayes);
-      } else if (sortVal === 'gan') {
-        list.sort((a, b) => b.gan - a.gan);
-      } else if (sortVal === 'num') {
-        list.sort((a, b) => parseInt(a.num) - parseInt(b.num));
-      }
-
-      const tbody = document.getElementById('matrixTableBody');
-      tbody.innerHTML = list.map(item => `
-        <tr class="hover:bg-quant-850/60 transition-colors">
-          <td class="py-2 px-3 font-bold text-white flex items-center gap-2">
-            <span class="text-sm font-black ${item.num === '68' ? 'text-quant-cyan glow-cyan' : (item.num === '79' ? 'text-quant-rose glow-rose' : 'text-slate-200')}">${item.num}</span>
-          </td>
-          <td class="py-2 px-3">
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold ${item.count14 >= 7 ? 'bg-quant-cyan/20 text-quant-cyan border border-quant-cyan/40' : 'text-slate-300'}">${item.count14} lần</span>
-          </td>
-          <td class="py-2 px-3 text-slate-300">${item.count30} lần</td>
-          <td class="py-2 px-3 font-semibold ${item.gan >= 10 ? 'text-quant-rose font-black' : (item.gan === 0 ? 'text-emerald-400 font-bold' : 'text-slate-400')}">
-            ${item.gan === 0 ? 'Vừa về' : item.gan + ' kỳ'}
-          </td>
-          <td class="py-2 px-3 text-emerald-400 font-bold">${item.p1}%</td>
-          <td class="py-2 px-3 text-quant-amber font-bold">${item.p2}%</td>
-          <td class="py-2 px-3 font-black ${item.bayes >= 90 ? 'text-quant-cyan' : 'text-slate-400'}">${item.bayes}</td>
-          <td class="py-2 px-3 text-right">
-            ${item.type === 'SUPER_HOT' ? '<span class="px-2 py-0.5 rounded bg-quant-cyan/15 text-quant-cyan text-[10px] font-bold border border-quant-cyan/30">SIÊU HOT</span>' :
-              (item.type === 'HOT_PAIR' ? '<span class="px-2 py-0.5 rounded bg-quant-amber/15 text-quant-amber text-[10px] font-bold border border-quant-amber/30">CẶP VÀNG</span>' :
-              (item.type === 'GAN_ALERT' ? '<span class="px-2 py-0.5 rounded bg-quant-rose/15 text-quant-rose text-[10px] font-bold border border-quant-rose/30">CẢNH BÁO GAN</span>' :
-              '<span class="text-slate-500 text-[10px]">TIÊU CHUẨN</span>'))}
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    /* ========================================================================
-       4. INTERACTIVE 2D CANVAS: CHUỖI MARKOV VỊ TRÍ CẦU
-    ======================================================================== */
-    let canvas, ctx;
-    let particles = [];
-    const nodes = [
-      { id: 'GDB', label: 'Giải ĐB (85459)', x: 0.15, y: 0.25, color: '#F43F5E' },
-      { id: 'G1', label: 'Giải Nhất (42106)', x: 0.15, y: 0.75, color: '#F59E0B' },
-      { id: 'G3', label: 'Giải 3.2 (68294)', x: 0.50, y: 0.50, color: '#A855F7' },
-      { id: 'BTL', label: 'Bạch Thủ 68', x: 0.85, y: 0.30, color: '#00F0FF' },
-      { id: 'BTD', label: 'Đặc Biệt 79', x: 0.85, y: 0.70, color: '#10B981' }
-    ];
-
-    function initMarkovCanvas() {
-      canvas = document.getElementById('markovCanvas');
-      if (!canvas) return;
-      ctx = canvas.getContext('2d');
-      resizeCanvas();
-      window.addEventListener('resize', resizeCanvas);
-
-      // Sinh hạt photon chạy dọc theo các liên kết
-      particles = [];
-      for (let i = 0; i < 24; i++) {
-        particles.push({
-          sourceIndex: i % 3,
-          targetIndex: 3 + (i % 2),
-          progress: Math.random(),
-          speed: 0.005 + Math.random() * 0.007
-        });
-      }
-      requestAnimationFrame(animateMarkov);
-    }
-
-    function resizeCanvas() {
-      if (!canvas) return;
-      canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = canvas.parentElement.clientHeight;
-    }
-
-    function animateMarkov() {
-      if (!canvas || !ctx) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const w = canvas.width;
-      const h = canvas.height;
-
-      // Vẽ các đường nối cầu xác suất
-      ctx.lineWidth = 1.2;
-      for (let p of particles) {
-        const src = nodes[p.sourceIndex];
-        const tgt = nodes[p.targetIndex];
-
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.beginPath();
-        ctx.moveTo(src.x * w, src.y * h);
-        ctx.lineTo(tgt.x * w, tgt.y * h);
-        ctx.stroke();
-
-        // Cập nhật vị trí hạt photon
-        p.progress += p.speed;
-        if (p.progress > 1) p.progress = 0;
-
-        const curX = (src.x + (tgt.x - src.x) * p.progress) * w;
-        const curY = (src.y + (tgt.y - src.y) * p.progress) * h;
-
-        ctx.fillStyle = tgt.color;
-        ctx.shadowColor = tgt.color;
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(curX, curY, 2.8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-
-      // Vẽ các Node
-      nodes.forEach(node => {
-        const nx = node.x * w;
-        const ny = node.y * h;
-
-        // Vòng phát sáng ngoài
-        ctx.strokeStyle = node.color;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(nx, ny, 16, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Điểm tâm
-        ctx.fillStyle = node.color;
-        ctx.shadowColor = node.color;
-        ctx.shadowBlur = 12;
-        ctx.beginPath();
-        ctx.arc(nx, ny, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-
-        // Label
-        ctx.font = '10px JetBrains Mono';
-        ctx.fillStyle = '#ffffff';
-        ctx.textAlign = 'center';
-        ctx.fillText(node.label, nx, ny + 28);
-      });
-
-      requestAnimationFrame(animateMarkov);
-    }
-
-    /* ========================================================================
-       5. 24-HOUR AUTO-ROLLOVER & TIMERS
-    ======================================================================== */
-    function startRealtimeClocks() {
-      function tick() {
-        const now = new Date();
-
-        // 1. Kiểm tra sang ngày mới -> Tự động chuyển giao bộ số sau 24h
-        const currentCheckDay = getTodayString();
-        if (currentCheckDay !== currentDayStr) {
-          currentDayStr = currentCheckDay;
-          currentPRNG = createPRNG(hashStringToSeed(currentDayStr + "_14DAY_QUANT_V7"));
-          build100Matrix();
-          renderMainUI();
-          showToast('CHUYỂN GIAO 24H', `Hệ thống đã tự động nạp dữ liệu ngày mới: ${currentDayStr}`);
-        }
-
-        // 2. Đồng hồ đếm ngược 18:15 (Giờ Quay XSMB)
-        const drawTarget = new Date(now);
-        drawTarget.setHours(18, 15, 0, 0);
-        let diffDraw = drawTarget - now;
-        if (diffDraw < 0) {
-          drawTarget.setDate(drawTarget.getDate() + 1);
-          diffDraw = drawTarget - now;
-        }
-        const hd = String(Math.floor(diffDraw / 3600000)).padStart(2, '0');
-        const md = String(Math.floor((diffDraw % 3600000) / 60000)).padStart(2, '0');
-        const sd = String(Math.floor((diffDraw % 60000) / 1000)).padStart(2, '0');
-        const elDraw = document.getElementById('header-countdown');
-        if (elDraw) elDraw.innerText = `${hd}:${md}:${sd}`;
-
-        // 3. Đồng hồ đếm ngược 24h (Đến 00:00:00 đêm)
-        const midnight = new Date(now);
-        midnight.setHours(24, 0, 0, 0);
-        let diffMid = midnight - now;
-        const hm = String(Math.floor(diffMid / 3600000)).padStart(2, '0');
-        const mm = String(Math.floor((diffMid % 3600000) / 60000)).padStart(2, '0');
-        const sm = String(Math.floor((diffMid % 60000) / 1000)).padStart(2, '0');
-        const elRollover = document.getElementById('rollover-countdown');
-        if (elRollover) elRollover.innerText = `${hm}:${mm}:${sm}`;
-      }
-
-      tick();
-      setInterval(tick, 1000);
-    }
-
-    function manualForceSync() {
-      const syncText = document.getElementById('sync-status-text');
-      const syncDot = document.getElementById('sync-indicator');
-      
-      syncText.innerText = "ĐANG TẢI DỮ LIỆU TỪ MÁY CHỦ...";
-      syncText.className = "text-quant-cyan font-semibold";
-      syncDot.className = "w-2 h-2 rounded-full bg-quant-cyan animate-spin";
-
-      setTimeout(() => {
-        syncText.innerText = `ĐỒNG BỘ 14 NGÀY THÀNH CÔNG: ${currentDayStr}`;
-        syncText.className = "text-emerald-400 font-semibold";
-        syncDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-        showToast('ĐỒNG BỘ ONLINE', 'Đã tải và xác thực toàn bộ tần suất 14 ngày qua.');
-      }, 700);
-    }
-
-    /* ========================================================================
-       6. KHỞI TẠO HỆ THỐNG
-    ======================================================================== */
-    window.onload = function() {
-      build100Matrix();
-      renderMainUI();
-      initMarkovCanvas();
-      startRealtimeClocks();
-    };
-  </script>
-</body>
-</html>
+  <script>
+    // =========================================================================
+    // 1. VERIFIED HISTORICAL XSMB DATASET (UP TO 29/10/2026)
+    // =========================================================================
+    const INITIAL_XSMB_DATA = [
+      {
+        date: "2026-10-29",
+        dayName: "Thứ Năm",
+        province: "Hà Nội",
+        code: "4KM-8KM-14KM-6KM-5KM-3KM",
+        special: "53401",
+        prize1: "47745",
+        prize2: ["62988", "46737"],
+        prize3: ["48305", "12492", "78217", "29106", "90525", "25381"],
+        prize4: ["4352", "7734", "0900", "2827"],
+        prize5: ["1885", "3123", "3284", "2452", "7149", "6951"],
+        prize6: ["759", "626", "969"],
+        prize7: ["96", "49", "18", "55"]
+      },
+      {
+        date: "2026-10-28",
+        dayName: "Thứ Tư",
+        province: "Bắc Ninh",
+        code: "14KL-9KL-1KL-10KL-4KL-8KL",
+        special: "74175",
+        prize1: "18190",
+        prize2: ["62731", "30468"],
+        prize3: ["95839", "63573", "61608", "11741", "53427", "95088"],
+        prize4: ["4748", "4683", "0750", "5861"],
+        prize5: ["5728", "8517", "1385", "6152", "3575", "1561"],
+        prize6: ["001", "997", "249"],
+        prize7: ["58", "30", "05", "41"]
+      },
+      {
+        date: "2026-10-27",
+        dayName: "Thứ Ba",
+        province: "Quảng Ninh",
+        code: "3KH-11KH-6KH-12KH-8KH-7KH",
+        special: "44691",
+        prize1: "89116",
+        prize2: ["78273", "85201"],
+        prize3: ["76185", "73369", "17234", "68024", "73576", "07572"],
+        prize4: ["8193", "6579", "6928", "7419"],
+        prize5: ["2932", "2166", "3893", "5969", "4596", "5434"],
+        prize6: ["647", "386", "507"],
+        prize7: ["19", "41", "91", "06"]
+      },
+      {
+        date: "2026-10-26",
+        dayName: "Thứ Hai",
+        province: "Hà Nội",
+        code: "1KG-3KG-5KG-6KG-7KG-11KG",
+        special: "13221",
+        prize1: "82697",
+        prize2: ["34264", "74828"],
+        prize3: ["56825", "14797", "58426", "5... (Còn 87 KB)
